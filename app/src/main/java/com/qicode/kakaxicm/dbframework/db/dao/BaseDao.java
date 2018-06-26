@@ -13,6 +13,9 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -118,7 +121,7 @@ public abstract class BaseDao<T> implements IDao<T> {
         }
     }
 
-    private ContentValues getTbContentValuesFromMap(T entity) {
+    private ContentValues getDBContentValuesFrom(T entity) {
         ContentValues contentValues = new ContentValues();
         Iterator<Field> iterator = tableToFieldMap.values().iterator();
         while (iterator.hasNext()) {
@@ -157,7 +160,7 @@ public abstract class BaseDao<T> implements IDao<T> {
 
     @Override
     public Long insert(T item) {
-        ContentValues cv = getTbContentValuesFromMap(item);
+        ContentValues cv = getDBContentValuesFrom(item);
         Long res = database.insert(tableName, null, cv);
         return res;
     }
@@ -166,8 +169,8 @@ public abstract class BaseDao<T> implements IDao<T> {
     public int update(T item, T where) {
         //参数 表名,
 //        update(String table, ContentValues values, String whereClause, String[] whereArgs)
-        ContentValues newCv = getTbContentValuesFromMap(item);
-        ContentValues whereCv = getTbContentValuesFromMap(where);
+        ContentValues newCv = getDBContentValuesFrom(item);
+        ContentValues whereCv = getDBContentValuesFrom(where);
         //构建whereClause和whereArgs
         Condition condition = new Condition(whereCv);
         String whereClause = condition.getWhereClause();
@@ -182,13 +185,83 @@ public abstract class BaseDao<T> implements IDao<T> {
     @Override
     public int delete(T where) {
 //        delete(String table, String whereClause, String[] whereArgs)
-        ContentValues whereCv = getTbContentValuesFromMap(where);
+        ContentValues whereCv = getDBContentValuesFrom(where);
         Condition condition = new Condition(whereCv);
         String whereClause = condition.getWhereClause();
         String[] whereArgs = condition.getWhereArgs();
 
         int result = database.delete(tableName, whereClause, whereArgs);
         return result;
+    }
+
+    @Override
+    public List<T> query(T where) {
+        return query(where, null, null, null);
+    }
+
+    @Override
+    public List<T> query(T where, String orderBy, Integer startIndex, Integer limit) {
+        String limitString = null;
+        if (startIndex != null && limit != null) {
+            limitString = startIndex + " , " + limit;
+        }
+
+        ContentValues whereCv = getDBContentValuesFrom(where);
+        Condition condition = new Condition(whereCv);
+        String selection = condition.getWhereClause();
+        String[] selectionArgs = condition.getWhereArgs();
+        Cursor cursor = database.query(tableName, null, selection, selectionArgs, null, null, orderBy, limitString);
+        List<T> result = getItemList(cursor, where);
+        return result;
+    }
+
+    private List<T> getItemList(Cursor cursor, T where) {
+        LinkedList<T> list = new LinkedList<>();
+        //每一行,拿到列名，然后根据列名拿到Field对象获得值
+        T item = null;
+        while (cursor.moveToNext()) {
+            try {
+                item = (T) where.getClass().newInstance();
+                //拿到列名，查找列名对应的Field
+                Iterator<Map.Entry<String, Field>> entryIterator = tableToFieldMap.entrySet().iterator();
+                while (entryIterator.hasNext()) {
+                    Map.Entry<String, Field> next = entryIterator.next();
+                    String columName = next.getKey();
+                    //得到游标中的索引
+                    int columnIndex = cursor.getColumnIndex(columName);
+
+                    Field field = next.getValue();
+                    field.setAccessible(true);
+                    //通过Field设置将数据库中的值设置进去
+                    Class type = field.getType();
+                    if (columnIndex != -1) {
+                        //根据不同类型设置Field
+                        if (type == String.class) {
+                            field.set(item, cursor.getString(columnIndex));
+                        } else if (type == Double.class) {
+                            field.set(item, cursor.getDouble(columnIndex));
+                        } else if (type == Integer.class) {
+                            field.set(item, cursor.getInt(columnIndex));
+                        } else if (type == Long.class) {
+                            field.set(item, cursor.getLong(columnIndex));
+                        } else if (type == byte[].class) {
+                            field.set(item, cursor.getBlob(columnIndex));
+                            /*
+                            不支持的类型
+                             */
+                        } else {
+                            continue;
+                        }
+                    }
+                }
+                list.add(item);
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        return list;
     }
 
     /**

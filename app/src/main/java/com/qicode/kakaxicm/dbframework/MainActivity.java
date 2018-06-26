@@ -6,12 +6,15 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import com.qicode.kakaxicm.dbframework.client.User;
 import com.qicode.kakaxicm.dbframework.client.UserDao;
 import com.qicode.kakaxicm.dbframework.db.dao.BaseDaoFactory;
 import com.qicode.kakaxicm.dbframework.db.dao.IDao;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private final int REQUESTCODE = 101;
@@ -49,8 +52,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void save(View view) {
-        User user = new User("teacher", "123456");
+//        for (int i = 0; i < 10; i++) {
+//            User user = new User("teacher", "123456=" + i);
+//            baseDao.insert(user);
+//        }
+        User user = new User();
+        user.setName("haha");
         baseDao.insert(user);
+
 //        BaseDao<DownFile> baseDao1 = BaseDaoFactory.getInstance().getDataHelper(DownDao.class, DownFile.class);
 //        baseDao1.insert(new DownFile("2013.1.9", "data/data/apth"));
     }
@@ -69,6 +78,14 @@ public class MainActivity extends AppCompatActivity {
         User whereUser = new User();
         whereUser.setName("cm");
         baseDao.delete(whereUser);
+    }
+
+    public void query(View view) {
+        User whereUser = new User();
+        //查询用户名字为teacher的列表
+        whereUser.setName("teacher");
+        List<User> list = baseDao.query(whereUser);
+        Log.e("DB", "查询结果:"+list.size());
     }
 }
 
