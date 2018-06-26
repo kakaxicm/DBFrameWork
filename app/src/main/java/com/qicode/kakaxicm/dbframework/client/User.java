@@ -11,6 +11,17 @@ public class User {
     @DbField("tb_name")
     private String name;
 
+    @DbField("tb_pswd")
+    private String password;
+
+    public User() {
+    }
+
+    public User(String name, String password) {
+        this.name = name;
+        this.password = password;
+    }
+
     public String getName() {
         return name;
     }
@@ -27,11 +38,4 @@ public class User {
         this.password = password;
     }
 
-    @DbField("tb_pswd")
-    private String password;
-
-    public User(String name, String password) {
-        this.name = name;
-        this.password = password;
-    }
 }

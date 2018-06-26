@@ -10,8 +10,10 @@ import com.qicode.kakaxicm.dbframework.db.annotation.DbField;
 import com.qicode.kakaxicm.dbframework.db.annotation.DbTable;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Created by chenming on 2018/6/25
@@ -119,28 +121,28 @@ public abstract class BaseDao<T> implements IDao<T> {
     private ContentValues getTbContentValuesFromMap(T entity) {
         ContentValues contentValues = new ContentValues();
         Iterator<Field> iterator = tableToFieldMap.values().iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             Field field = iterator.next();
             String key = null;
             String value = null;
             DbField annotation = field.getAnnotation(DbField.class);
-            if(annotation != null){
+            if (annotation != null) {
                 key = annotation.value();
-            }else{
+            } else {
                 key = field.getName();
             }
             Object result = null;
             try {
                 result = field.get(entity);
-                if(result == null){
+                if (result == null) {
                     continue;
-                }else{
+                } else {
                     value = result.toString();
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
-            contentValues.put(key,value);
+            contentValues.put(key, value);
         }
         return contentValues;
     }
@@ -161,7 +163,57 @@ public abstract class BaseDao<T> implements IDao<T> {
     }
 
     @Override
-    public Long update(T item, T from) {
-        return null;
+    public int update(T item, T where) {
+        //参数 表名,
+//        update(String table, ContentValues values, String whereClause, String[] whereArgs)
+        ContentValues newCv = getTbContentValuesFromMap(item);
+        ContentValues whereCv = getTbContentValuesFromMap(where);
+        //构建whereClause和whereArgs
+        Condition condition = new Condition(whereCv);
+        String whereClause = condition.getWhereClause();
+        String[] whereArgs = condition.getWhereArgs();
+
+        int result = database.update(tableName, newCv, whereClause, whereArgs);
+
+
+        return result;
+    }
+
+    /**
+     * 查询条件
+     * name=? && password =?
+     * 查询参数 String[] whereArgs
+     */
+    class Condition {
+        String whereClause;
+
+        String[] whereArgs;
+
+        public Condition(ContentValues whereCv) {
+            StringBuilder whereClauseBuilder = new StringBuilder();
+            whereClauseBuilder.append(" 1=1 ");//为了简便连接字串
+            ArrayList<String> whereArgsList = new ArrayList();
+
+            Set<String> keySet = whereCv.keySet();
+            Iterator<String> iterator = keySet.iterator();
+            while (iterator.hasNext()) {
+                String key = iterator.next();
+                String value = whereCv.get(key).toString();
+                if (value != null) {
+                    whereClauseBuilder.append(" and ").append(key).append(" =?");
+                    whereArgsList.add(value);
+                }
+            }
+            this.whereClause = whereClauseBuilder.toString();
+            this.whereArgs = whereArgsList.toArray(new String[whereArgsList.size()]);
+        }
+
+        public String getWhereClause() {
+            return whereClause;
+        }
+
+        public String[] getWhereArgs() {
+            return whereArgs;
+        }
     }
 }

@@ -22,11 +22,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             int checkSelfPermission = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            if(checkSelfPermission == PackageManager.PERMISSION_DENIED){
-                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},REQUESTCODE);
-            }else{
+            if (checkSelfPermission == PackageManager.PERMISSION_DENIED) {
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUESTCODE);
+            } else {
                 baseDao = BaseDaoFactory.getInstance().getBaseDao(UserDao.class, User.class);
             }
         }
@@ -53,5 +53,15 @@ public class MainActivity extends AppCompatActivity {
         baseDao.insert(user);
 //        BaseDao<DownFile> baseDao1 = BaseDaoFactory.getInstance().getDataHelper(DownDao.class, DownFile.class);
 //        baseDao1.insert(new DownFile("2013.1.9", "data/data/apth"));
+    }
+
+    public void update(View view) {
+        User whereUser = new User();
+        whereUser.setName("chenming");
+
+        User newUser = new User();
+        newUser.setName("cm");
+        //修改名字为chenming的条目，用户名为cm
+        baseDao.update(newUser, whereUser);
     }
 }

@@ -15,8 +15,8 @@ public interface IDao<T> {
     /**
      * 更新
      * @param item 新数据
-     * @param from 旧数据
+     * @param where 条件
      * @return
      */
-    Long update(T item, T from);
+    int update(T item, T where);
 }
