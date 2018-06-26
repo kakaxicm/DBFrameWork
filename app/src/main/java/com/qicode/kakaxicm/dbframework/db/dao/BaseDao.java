@@ -179,6 +179,18 @@ public abstract class BaseDao<T> implements IDao<T> {
         return result;
     }
 
+    @Override
+    public int delete(T where) {
+//        delete(String table, String whereClause, String[] whereArgs)
+        ContentValues whereCv = getTbContentValuesFromMap(where);
+        Condition condition = new Condition(whereCv);
+        String whereClause = condition.getWhereClause();
+        String[] whereArgs = condition.getWhereArgs();
+
+        int result = database.delete(tableName, whereClause, whereArgs);
+        return result;
+    }
+
     /**
      * 查询条件
      * name=? && password =?

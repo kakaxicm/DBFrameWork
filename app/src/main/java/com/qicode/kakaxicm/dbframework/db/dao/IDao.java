@@ -19,4 +19,11 @@ public interface IDao<T> {
      * @return
      */
     int update(T item, T where);
+
+    /**
+     * 删除数据
+     * @param where
+     * @return
+     */
+    int delete(T where);
 }

@@ -64,4 +64,12 @@ public class MainActivity extends AppCompatActivity {
         //修改名字为chenming的条目，用户名为cm
         baseDao.update(newUser, whereUser);
     }
+
+    public void delete(View view) {
+        User whereUser = new User();
+        whereUser.setName("cm");
+        baseDao.delete(whereUser);
+    }
 }
+
+
