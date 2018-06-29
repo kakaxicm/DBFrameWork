@@ -244,12 +244,14 @@ public abstract class BaseDao<T> implements IDao<T> {
                             field.set(item, cursor.getInt(columnIndex));
                         } else if (type == Long.class) {
                             field.set(item, cursor.getLong(columnIndex));
+                        } else if (type == Float.class) {
+                            field.set(item, cursor.getFloat(columnIndex));
                         } else if (type == byte[].class) {
                             field.set(item, cursor.getBlob(columnIndex));
+                        } else {
                             /*
                             不支持的类型
                              */
-                        } else {
                             continue;
                         }
                     }

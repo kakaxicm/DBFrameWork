@@ -32,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 baseDao = BaseDaoFactory.getInstance().getBaseDao(UserDao.class, User.class);
             }
+        } else {
+            baseDao = BaseDaoFactory.getInstance().getBaseDao(UserDao.class, User.class);
         }
 
     }
@@ -85,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         //查询用户名字为teacher的列表
         whereUser.setName("teacher");
         List<User> list = baseDao.query(whereUser);
-        Log.e("DB", "查询结果:"+list.size());
+        Log.e("DB", "查询结果:" + list.size());
     }
 }
 
